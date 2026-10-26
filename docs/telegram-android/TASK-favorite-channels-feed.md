@@ -3,7 +3,7 @@
 ## Контекст
 
 - Исходники клиента подключены сабмодулем `telegram-android/`
-  (апстрим `DrKLO/Telegram`, версия 13.1.1 (7237)).
+  (форк `syscomua/Telegram` от апстрима `DrKLO/Telegram`, версия 13.1.1 (7237)).
 - Сначала: `git submodule update --init --depth 1 telegram-android`.
 - Код приложения: `telegram-android/TMessagesProj/src/main/java/org/telegram/`
   (`messenger/` — логика и хранилище, `ui/` — экраны, `ui/Cells`, `ui/Components`).
