@@ -1,0 +1,4 @@
+[submodule "telegram-android"]
+	path = telegram-android
+	url = https://github.com/DrKLO/Telegram.git
+	shallow = true
