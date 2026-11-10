@@ -174,15 +174,82 @@ def page_pieces(unit, side_cm):
 </section>""" % (side_cm, s, names, side_cm, side_cm, s2)
 
 
-def html(pages):
-    return ('<!doctype html><html><head><meta charset="utf-8"><style>%s</style></head><body>%s'
-            '</body></html>' % (CSS, "\n".join(pages)))
+def html(pages, css_extra=""):
+    return ('<!doctype html><html><head><meta charset="utf-8"><style>%s%s</style></head><body>%s'
+            '</body></html>' % (CSS, css_extra, "\n".join(pages)))
+
+
+MAP_CSS = """
+@page { size: %(w)gmm %(h)gmm; margin: 0; }
+.map { width: %(w)gmm; height: %(h)gmm; padding: %(pad)gmm; page-break-after: always;
+       display: flex; flex-direction: column; gap: %(gap)gmm; overflow: hidden; }
+.map h1 { font-size: %(h1)gpt; }
+.legend { display: flex; flex-wrap: wrap; gap: 1.5mm %(gap)gmm; font-size: %(fs)gpt; color: #333; }
+.grid { flex: 1; display: grid; grid-template-columns: repeat(%(cols)d, 1fr);
+        grid-template-rows: repeat(%(rows)d, 1fr); gap: %(gap)gmm; min-height: 0; }
+.cell { border: 0.3mm solid #d5dbe2; border-radius: 2mm; padding: %(cp)gmm; display: flex;
+        flex-direction: column; min-height: 0; }
+.cell .pic { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.cell .cap { font-size: %(fs)gpt; font-weight: 600; display: flex; justify-content: space-between; }
+.cell .cap span { color: #5b6774; font-weight: 400; }
+"""
+
+
+def same_scale_svg(sol, labels, ext):
+    """Кольорова схема фігури, вписана в клітинку; номери кроків однакового розміру."""
+    x0, y0, x1, y1 = bounds(sol)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    ext = max(x1 - x0, y1 - y0, 3.2) * 1.06  # фігура на всю клітинку, підписи однакові
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" style="width:100%%;height:100%%" '
+           'viewBox="%.3f %.3f %.3f %.3f" preserveAspectRatio="xMidYMid meet">'
+           % (cx - ext / 2, -cy - ext / 2, ext, ext)]
+    for n, pts in sol.items():
+        p = " ".join("%.4f,%.4f" % (x, -y) for x, y in pts)
+        out.append('<polygon points="%s" fill="%s" stroke="#fff" stroke-width="%.3f" '
+                   'stroke-linejoin="round"/>' % (p, COLORS[n], ext * 0.008))
+    fs = ext * 0.062
+    for n, t in labels.items():
+        pts = sol[n]
+        mx = sum(x for x, _ in pts) / len(pts)
+        my = sum(y for _, y in pts) / len(pts)
+        out.append('<circle cx="%.3f" cy="%.3f" r="%.3f" fill="#fff"/>' % (mx, -my, fs * 0.7))
+        out.append('<text x="%.3f" y="%.3f" font-size="%.3f" font-weight="700" fill="#111" '
+                   'text-anchor="middle" dominant-baseline="central" '
+                   'font-family="Inter, sans-serif">%s</text>' % (mx, -my, fs, t))
+    out.append("</svg>")
+    return "".join(out)
+
+
+def map_pages(figs, cols, rows, title):
+    per = cols * rows
+    legend = "".join('<span><span class="sw" style="background:%s"></span>%s</span>'
+                     % (COLORS[n], instructions.NAMES[n][0]) for n in
+                     ["L1", "L2", "M", "Q", "P", "S1", "S2"])
+    ext = max(max(b[2] - b[0], b[3] - b[1]) for b in (bounds(f[3]) for f in figs)) * 1.04
+    pages = []
+    for start in range(0, len(figs), per):
+        chunk = figs[start:start + per]
+        cells = []
+        for num, key, name, sol in chunk:
+            steps = instructions.plan(sol)
+            labels = {st["piece"]: str(i + 1) for i, st in enumerate(steps)}
+            sv = same_scale_svg(sol, labels, ext)
+            cells.append('<div class="cell"><div class="pic">%s</div>'
+                         '<div class="cap">%s<span>№ %d</span></div></div>' % (sv, name, num))
+        part = ""
+        if len(figs) > per:
+            part = " (аркуш %d з %d)" % (start // per + 1, (len(figs) + per - 1) // per)
+        pages.append('<section class="map"><div class="head"><h1>%s%s</h1>'
+                     '<span class="num">цифри — порядок складання</span></div>'
+                     '<div class="legend">%s</div><div class="grid">%s</div></section>'
+                     % (title, part, legend, "".join(cells)))
+    return pages
 
 
 def to_pdf(html_path, pdf_path):
     js = ("const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();"
           "const p=await b.newPage();await p.goto('file://'+process.argv[1]);"
-          "await p.pdf({path:process.argv[2],format:'A4',printBackground:true,"
+          "await p.pdf({path:process.argv[2],printBackground:true,"
           "preferCSSPageSize:true});await b.close();})();")
     subprocess.run(["node", "-e", js, os.path.abspath(html_path), os.path.abspath(pdf_path)],
                    check=True)
@@ -201,10 +268,16 @@ def main():
         "zadaniya": [page_task(*f, unit, a.side_cm, a.lines) for f in figs],
         "otvety": [page_answer(*f, unit, a.side_cm) for f in figs],
         "detali": [page_pieces(unit, a.side_cm)],
+        "karta_a2": map_pages(figs, 6, 8, "Танграм: усі фігури"),
+        "karta_a4": map_pages(figs, 4, 6, "Танграм: усі фігури"),
+    }
+    extra = {
+        "karta_a2": MAP_CSS % dict(w=420, h=594, pad=14, gap=4, h1=34, fs=12, cols=6, rows=8, cp=3),
+        "karta_a4": MAP_CSS % dict(w=210, h=297, pad=9, gap=2.5, h1=18, fs=8, cols=4, rows=6, cp=1.5),
     }
     for name, pages in jobs.items():
         hp = os.path.join(a.out, name + ".html")
-        open(hp, "w", encoding="utf-8").write(html(pages))
+        open(hp, "w", encoding="utf-8").write(html(pages, extra.get(name, "")))
         to_pdf(hp, os.path.join(a.out, name + ".pdf"))
         if not os.environ.get("KEEP_HTML"):
             os.remove(hp)
