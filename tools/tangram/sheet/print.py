@@ -231,16 +231,14 @@ def map_pages(figs, cols, rows, title):
         chunk = figs[start:start + per]
         cells = []
         for num, key, name, sol in chunk:
-            steps = instructions.plan(sol)
-            labels = {st["piece"]: str(i + 1) for i, st in enumerate(steps)}
-            sv = same_scale_svg(sol, labels, ext)
+            sv = same_scale_svg(sol, {}, ext)
             cells.append('<div class="cell"><div class="pic">%s</div>'
                          '<div class="cap">%s<span>№ %d</span></div></div>' % (sv, name, num))
         part = ""
         if len(figs) > per:
             part = " (аркуш %d з %d)" % (start // per + 1, (len(figs) + per - 1) // per)
         pages.append('<section class="map"><div class="head"><h1>%s%s</h1>'
-                     '<span class="num">цифри — порядок складання</span></div>'
+                     '</div>'
                      '<div class="legend">%s</div><div class="grid">%s</div></section>'
                      % (title, part, legend, "".join(cells)))
     return pages
