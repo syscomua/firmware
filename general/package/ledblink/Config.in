@@ -1,0 +1,5 @@
+config BR2_PACKAGE_LEDBLINK
+	bool "ledblink"
+	help
+	  Blink an LED on a GPIO pin with a fixed frequency (50 Hz by default)
+	  and skip a number of full periods every second (2 by default).
