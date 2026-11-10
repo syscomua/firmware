@@ -199,7 +199,7 @@ def same_scale_svg(sol, labels, ext):
     """Кольорова схема фігури, вписана в клітинку; номери кроків однакового розміру."""
     x0, y0, x1, y1 = bounds(sol)
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    ext = max(x1 - x0, y1 - y0, 3.2) * 1.06  # фігура на всю клітинку, підписи однакові
+    ext = max(x1 - x0, y1 - y0, 3.2) * 1.01  # фігура на всю клітинку, підписи однакові
     out = ['<svg xmlns="http://www.w3.org/2000/svg" style="width:100%%;height:100%%" '
            'viewBox="%.3f %.3f %.3f %.3f" preserveAspectRatio="xMidYMid meet">'
            % (cx - ext / 2, -cy - ext / 2, ext, ext)]
@@ -253,15 +253,111 @@ def to_pdf(html_path, pdf_path):
                    check=True)
 
 
+CARD_CSS = """
+@page { size: 148mm 210mm; margin: 0; }
+.card { width: 148mm; height: 210mm; padding: 10mm; page-break-after: always;
+        display: flex; flex-direction: column; gap: 4mm; overflow: hidden; }
+.card h1 { font-size: 24pt; margin: 0; }
+.card .pic { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.card .foot { font-size: 9pt; }
+"""
+
+
+def card_pages(figs):
+    pages = []
+    for num, key, name, sol in figs:
+        sv = same_scale_svg(sol, {}, None)
+        pages.append('<section class="card"><div class="head"><h1>%s</h1>'
+                     '<span class="num">№ %d</span></div><div class="pic">%s</div>'
+                     '<div class="foot"><span>Складіть фігуру з усіх семи деталей</span>'
+                     '<span>Танграм</span></div></section>' % (name, num, sv))
+    return pages
+
+
+def fname(num, name):
+    return "%02d_%s" % (num, name.replace(" ", "_"))
+
+
+README_TXT = """ТАНГРАМ — МАТЕРІАЛИ ДЛЯ ДРУКУ
+
+1_Підготовка
+  Деталі_та_контрольний_квадрат.pdf — деталі для вирізання (якщо немає набору)
+  і контрольний квадрат. Спершу роздрукуйте його і прикладіть свій складений квадрат:
+  контур має збігтися (розраховано на квадрат зі стороною %(side)g см).
+
+2_Завдання
+  Завдання_силуети_A4.pdf — 48 аркушів, чорний силует у натуральну величину.
+  Друкувати чорно-біло. Пацієнт викладає деталі просто на аркуш.
+
+3_Складання
+  Відповіді_покроково_A4.pdf — 48 аркушів: кольорова схема з номерами кроків
+  і покрокова інструкція. Для фахівця або як підказка.
+
+4_Карта
+  Карта_всіх_фігур_A2.pdf — плакат з усіма 48 фігурами кольором.
+  Карта_всіх_фігур_2xA4.pdf — те саме на двох аркушах A4.
+
+5_Картки
+  Окрема картка A5 на кожну фігуру: назва та кольорова схема (PDF і PNG).
+
+ДРУК: масштаб 100%% / «Фактичний розмір», без «Вмістити на сторінку».
+"""
+
+
+def pack(a, unit, figs, outdir):
+    import shutil
+    tmp = os.path.join(outdir, "_tmp")
+    os.makedirs(tmp, exist_ok=True)
+    root = os.path.join(outdir, "Танграм_матеріали")
+    if os.path.exists(root):
+        shutil.rmtree(root)
+    layout = {
+        "1_Підготовка/Деталі_та_контрольний_квадрат": ([page_pieces(unit, a.side_cm)], ""),
+        "2_Завдання/Завдання_силуети_A4": ([page_task(*f, unit, a.side_cm, a.lines) for f in figs], ""),
+        "3_Складання/Відповіді_покроково_A4": ([page_answer(*f, unit, a.side_cm) for f in figs], ""),
+        "4_Карта/Карта_всіх_фігур_A2": (map_pages(figs, 6, 8, "Танграм: усі фігури"), MAP_CSS % dict(
+            w=420, h=594, pad=12, gap=3, h1=34, fs=12, cols=6, rows=8, cp=1.5)),
+        "4_Карта/Карта_всіх_фігур_2xA4": (map_pages(figs, 4, 6, "Танграм: усі фігури"), MAP_CSS % dict(
+            w=210, h=297, pad=8, gap=2, h1=18, fs=8, cols=4, rows=6, cp=0.8)),
+        "_tmp/cards": (card_pages(figs), CARD_CSS),
+    }
+    for rel, (pages, css) in layout.items():
+        pdf = os.path.join(root if not rel.startswith("_tmp") else outdir, rel + ".pdf")
+        os.makedirs(os.path.dirname(pdf), exist_ok=True)
+        hp = os.path.join(tmp, "page.html")
+        open(hp, "w", encoding="utf-8").write(html(pages, css))
+        to_pdf(hp, pdf)
+        print("записано:", pdf)
+    cards = os.path.join(root, "5_Картки")
+    os.makedirs(cards, exist_ok=True)
+    subprocess.run(["pdfseparate", os.path.join(tmp, "cards.pdf"), os.path.join(tmp, "c-%d.pdf")],
+                   check=True)
+    for i, (num, key, name, sol) in enumerate(figs):
+        base = os.path.join(cards, fname(num, name))
+        shutil.move(os.path.join(tmp, "c-%d.pdf" % (i + 1)), base + ".pdf")
+        subprocess.run(["pdftoppm", "-r", "150", "-png", "-singlefile", base + ".pdf", base],
+                       check=True, stderr=subprocess.DEVNULL)
+    open(os.path.join(root, "Як_друкувати.txt"), "w", encoding="utf-8").write(
+        README_TXT % dict(side=a.side_cm))
+    shutil.rmtree(tmp)
+    z = shutil.make_archive(root, "zip", outdir, "Танграм_матеріали")
+    print("архів:", z)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
     ap.add_argument("--side-cm", type=float, default=12)
     ap.add_argument("--lines", action="store_true")
+    ap.add_argument("--pack", action="store_true",
+                    help="усе в одну папку Танграм_матеріали (+ zip), картки окремо")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     unit = a.side_cm * 10 / (2 * R)  # мм на единицу (катет маленького треугольника)
     figs = load_figs()
+    if a.pack:
+        pack(a, unit, figs, a.out)
+        return
     jobs = {
         "zadaniya": [page_task(*f, unit, a.side_cm, a.lines) for f in figs],
         "otvety": [page_answer(*f, unit, a.side_cm) for f in figs],
@@ -270,8 +366,8 @@ def main():
         "karta_a4": map_pages(figs, 4, 6, "Танграм: усі фігури"),
     }
     extra = {
-        "karta_a2": MAP_CSS % dict(w=420, h=594, pad=14, gap=4, h1=34, fs=12, cols=6, rows=8, cp=3),
-        "karta_a4": MAP_CSS % dict(w=210, h=297, pad=9, gap=2.5, h1=18, fs=8, cols=4, rows=6, cp=1.5),
+        "karta_a2": MAP_CSS % dict(w=420, h=594, pad=12, gap=3, h1=34, fs=12, cols=6, rows=8, cp=1.5),
+        "karta_a4": MAP_CSS % dict(w=210, h=297, pad=8, gap=2, h1=18, fs=8, cols=4, rows=6, cp=0.8),
     }
     for name, pages in jobs.items():
         hp = os.path.join(a.out, name + ".html")
