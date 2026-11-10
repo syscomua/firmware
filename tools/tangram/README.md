@@ -94,3 +94,5 @@ python3 sheet/print.py out/print --lines           # задания с лини�
 python3 sheet/print.py out --pack --side-cm 12   # -> out/Танграм_матеріали/ і out/Танграм_матеріали.zip
 ```
 Готовий архів лежить поруч: `tools/tangram/Танграм_матеріали.zip`.
+
+Книга (усе в одному PDF з розділами і покажчиком): `python3 sheet/book.py Танграм_книга.pdf --side-cm 12`.

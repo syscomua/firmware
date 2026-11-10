@@ -280,6 +280,10 @@ def fname(num, name):
 
 README_TXT = """ТАНГРАМ — МАТЕРІАЛИ ДЛЯ ДРУКУ
 
+Танграм_книга_A4.pdf — усе в одному документі як книга з розділами
+  (як користуватися, підготовка, карта, завдання, відповіді, покажчик).
+  Нижче — ті самі матеріали окремими файлами.
+
 1_Підготовка
   Деталі_та_контрольний_квадрат.pdf — деталі для вирізання (якщо немає набору)
   і контрольний квадрат. Спершу роздрукуйте його і прикладіть свій складений квадрат:
@@ -340,6 +344,9 @@ def pack(a, unit, figs, outdir):
     open(os.path.join(root, "Як_друкувати.txt"), "w", encoding="utf-8").write(
         README_TXT % dict(side=a.side_cm))
     shutil.rmtree(tmp)
+    subprocess.run([sys.executable, "-W", "ignore", os.path.join(HERE, "book.py"),
+                    os.path.join(root, "Танграм_книга_A4.pdf"), "--side-cm", str(a.side_cm)],
+                   check=True)
     z = shutil.make_archive(root, "zip", outdir, "Танграм_матеріали")
     print("архів:", z)
 
