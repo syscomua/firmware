@@ -120,7 +120,10 @@ def plan(sol):
             if L > 1e-3:
                 cx, cy = centroid(pts)
                 mx, my = centroid(sol[m])
-                text += " и приложите %s %s." % (DIR8[dir8(cx - mx, cy - my)], NAMES[m][1])
+                text += " и приложите %s %s" % (DIR8[dir8(cx - mx, cy - my)], NAMES[m][1])
+                if not any(math.dist(a, b) < 1e-3 for a in pts for b in sol[m]):
+                    text += " со сдвигом: уголки деталей не совпадают, сверьтесь с картинкой"
+                text += "."
             else:
                 near = [(Polygon(pts).distance(Polygon(sol[m])), m) for m in order[:k]]
                 dmin, m = min(near)

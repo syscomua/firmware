@@ -51,8 +51,16 @@ def cell_image(im, r, c, half=60):
     return np.array(im.crop(box))
 
 
+def flatten(g):
+    """Выровнять освещение (тени, блики): делим на оценку фона."""
+    g = g.astype(np.float32)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (161, 161))
+    bg = cv2.GaussianBlur(cv2.morphologyEx(g, cv2.MORPH_CLOSE, k), (0, 0), 20)
+    return np.clip(g / np.maximum(bg, 1) * 220, 0, 255).astype(np.uint8)
+
+
 def contours(g):
-    g = cv2.GaussianBlur(g, (5, 5), 0)
+    g = cv2.GaussianBlur(flatten(g), (5, 5), 0)
     _, th = cv2.threshold(g, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     th = cv2.morphologyEx(th, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     n, lab, stats, _ = cv2.connectedComponentsWithStats(th)

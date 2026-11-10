@@ -42,6 +42,9 @@ def target_from_cell(im, r, c, half=66, rot=None):
         polys.append(p)
     if not polys:
         return None
+    main = max(polys, key=lambda p: p.area)
+    u0 = math.sqrt(sum(p.area for p in polys) / 8)
+    polys = [p for p in polys if p is main or p.distance(main) < 0.8 * u0]
     T = unary_union(polys)
     u = math.sqrt(T.area / 8)
     # выравнивание поворота: стороны должны идти под углами, кратными 45°

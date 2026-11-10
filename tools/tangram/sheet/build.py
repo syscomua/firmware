@@ -61,7 +61,7 @@ def exactify(sol):
 
 
 # Фигуры, собранные «по мотивам» листка: силуэт упрощён или отличается в деталях
-ADAPTED = {"0,0", "0,2", "1,4", "2,2", "2,4", "3,2", "4,0", "5,2", "6,0", "7,4", "2,0", "7,5"}
+ADAPTED = {"6,0", "2,0", "4,0", "4,5", "7,5", "2,4"}
 
 
 def check(sol):
@@ -80,7 +80,7 @@ def merge(args):
     figs = json.load(open(FIGS)) if os.path.exists(FIGS) else {}
     auto = json.load(open(args[0]))
     for k, v in auto.items():
-        if figs.get(k, {}).get("source") in ("manual", "fuzzy"):
+        if figs.get(k, {}).get("source") in ("manual", "fuzzy", "fixed"):
             continue
         figs[k] = {"solution": v["solution"], "source": "photo"}
     if len(args) > 2:
@@ -89,6 +89,10 @@ def merge(args):
             figs[k] = {"solution": fz[k]["solution"], "source": "fuzzy"}
     for k, fn in manual.MANUAL.items():
         figs[k] = {"solution": fn(), "source": "manual"}
+    fx = os.path.join(HERE, "fixes.json")
+    if os.path.exists(fx):
+        for k, v in json.load(open(fx)).items():
+            figs[k] = {"solution": v["solution"], "source": "fixed"}
     for k, v in figs.items():
         v["solution"] = {n: [[round(x, 6), round(y, 6)] for x, y in pts]
                          for n, pts in exactify(v["solution"]).items()}
