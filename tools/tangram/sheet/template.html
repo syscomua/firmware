@@ -1,4 +1,4 @@
-<title>Танграм: 48 фигур</title>
+<title>Танграм: 48 фігур</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
@@ -119,8 +119,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <script>
 const DATA = __DATA__;
 const COLORS = {L1:"#1f5a2c", L2:"#e8a530", M:"#e0457b", Q:"#2f62d9", P:"#d93a3a", S1:"#6cc08b", S2:"#b8222b"};
-const PIECE_NAMES = {L1:"большой тёмно-зелёный треугольник", L2:"большой оранжевый треугольник", M:"средний розовый треугольник", Q:"синий квадрат", P:"красный параллелограмм", S1:"маленький салатовый треугольник", S2:"маленький красный треугольник"};
-const LEVELS = {1:"лёгкая", 2:"средняя", 3:"сложная"};
+const PIECE_NAMES = {L1:"великий темно-зелений трикутник", L2:"великий помаранчевий трикутник", M:"середній рожевий трикутник", Q:"синій квадрат", P:"червоний паралелограм", S1:"маленький салатовий трикутник", S2:"маленький червоний трикутник"};
+const LEVELS = {1:"легка", 2:"середня", 3:"складна"};
 const app = document.getElementById("app");
 let filter = 0;
 let state = {mode: "sil", step: 0};
@@ -194,23 +194,23 @@ function textWithSwatch(step) {
 }
 
 function renderCatalog() {
-  document.title = "Танграм: 48 фигур";
+  document.title = "Танграм: 48 фігур";
   app.replaceChildren();
   app.append(el("header", {style: "display:flex;flex-direction:column;gap:12px"},
-    el("h1", {}, "Танграм: 48 фигур"),
-    el("p", {class: "lead"}, "Фигуры с листка «Розвиваюча гра «Танграм»». Каждая собирается из всех семи деталей набора. Выберите фигуру — откроется задание и пошаговая сборка.")));
+    el("h1", {}, "Танграм: 48 фігур"),
+    el("p", {class: "lead"}, "Фігури з аркуша «Розвиваюча гра «Танграм»». Кожна складається з усіх семи деталей набору. Оберіть фігуру — відкриється завдання та покрокове складання.")));
 
-  const kit = el("div", {class: "kit", "aria-label": "Детали набора"});
+  const kit = el("div", {class: "kit", "aria-label": "Деталі набору"});
   for (const n of ["L1", "L2", "M", "Q", "P", "S1", "S2"]) kit.append(el("div", {class: "kit-item"}, pieceIcon(n), PIECE_NAMES[n]));
   app.append(kit);
 
   app.append(el("div", {class: "howto"},
-    el("div", {}, el("b", {}, "1. Только силуэт"), el("span", {}, "Самый трудный уровень. Пациент сам догадывается, где какая деталь.")),
-    el("div", {}, el("b", {}, "2. Силуэт с линиями"), el("span", {}, "Видны границы деталей. Можно выкладывать детали прямо на экран или распечатку.")),
-    el("div", {}, el("b", {}, "3. По шагам"), el("span", {}, "Одна деталь за шаг: цветная подсказка и короткая фраза, куда её положить."))));
+    el("div", {}, el("b", {}, "1. Лише силует"), el("span", {}, "Найважчий рівень. Пацієнт сам здогадується, де яка деталь.")),
+    el("div", {}, el("b", {}, "2. Силует з лініями"), el("span", {}, "Видно межі деталей. Можна викладати деталі просто на екран або роздруківку.")),
+    el("div", {}, el("b", {}, "3. Покроково"), el("span", {}, "Одна деталь за крок: кольорова підказка й коротка фраза, куди її покласти."))));
 
-  const filters = el("div", {class: "filters", role: "group", "aria-label": "Сложность"});
-  [[0, "Все"], [1, "Лёгкие"], [2, "Средние"], [3, "Сложные"]].forEach(([v, t]) => {
+  const filters = el("div", {class: "filters", role: "group", "aria-label": "Складність"});
+  [[0, "Усі"], [1, "Легкі"], [2, "Середні"], [3, "Складні"]].forEach(([v, t]) => {
     filters.append(el("button", {class: "chip", "aria-pressed": String(filter === v), on: {click: () => { filter = v; renderCatalog(); }}}, t));
   });
   app.append(filters);
@@ -218,15 +218,15 @@ function renderCatalog() {
   const grid = el("div", {class: "grid"});
   DATA.forEach((fig, i) => {
     if (filter && fig.level !== filter) return;
-    const dots = el("span", {class: "dots", "aria-label": "сложность: " + LEVELS[fig.level]});
+    const dots = el("span", {class: "dots", "aria-label": "складність: " + LEVELS[fig.level]});
     for (let k = 1; k <= 3; k++) dots.append(el("i", {class: k <= fig.level ? "on" : ""}));
     grid.append(el("button", {class: "card", on: {click: () => { location.hash = fig.id; }}},
       figureSvg(fig, "sil"),
       el("span", {class: "card-name"}, fig.name),
-      el("span", {class: "card-meta"}, el("span", {}, "№ " + (i + 1) + (fig.adapted ? " · упрощена" : "")), dots)));
+      el("span", {class: "card-meta"}, el("span", {}, "№ " + (i + 1) + (fig.adapted ? " · спрощена" : "")), dots)));
   });
   app.append(grid);
-  app.append(el("p", {class: "note"}, "Названия фигур подобраны по картинкам листка. Силуэты восстановлены по фото листка. Фигуры с пометкой «упрощена» собраны по мотивам картинки и отличаются от листка в деталях. Каждый силуэт здесь точно собирается из семи деталей."));
+  app.append(el("p", {class: "note"}, "Назви фігур дібрано за малюнками з аркуша. Силуети відновлено з фото аркуша. Фігури з позначкою «спрощена» складено за мотивами малюнка, вони відрізняються від аркуша в деталях. Кожен силует тут точно складається із семи деталей."));
 }
 
 function renderFigure(idx) {
@@ -237,38 +237,38 @@ function renderFigure(idx) {
 
   const prevFig = idx > 0 ? DATA[idx - 1] : null, nextFig = idx < DATA.length - 1 ? DATA[idx + 1] : null;
   app.append(el("div", {class: "topbar"},
-    el("button", {class: "back", on: {click: () => { location.hash = ""; }}}, "← Все фигуры"),
+    el("button", {class: "back", on: {click: () => { location.hash = ""; }}}, "← Усі фігури"),
     el("div", {class: "pager"},
-      el("button", {class: "btn", ...(prevFig ? {} : {disabled: ""}), on: {click: () => prevFig && (location.hash = prevFig.id)}}, "← Предыдущая"),
-      el("button", {class: "btn", ...(nextFig ? {} : {disabled: ""}), on: {click: () => nextFig && (location.hash = nextFig.id)}}, "Следующая →"))));
+      el("button", {class: "btn", ...(prevFig ? {} : {disabled: ""}), on: {click: () => prevFig && (location.hash = prevFig.id)}}, "← Попередня"),
+      el("button", {class: "btn", ...(nextFig ? {} : {disabled: ""}), on: {click: () => nextFig && (location.hash = nextFig.id)}}, "Наступна →"))));
 
   app.append(el("h2", {}, `№ ${idx + 1}. ${fig.name}`));
-  if (fig.adapted) app.append(el("p", {class: "note"}, "Эта фигура собрана по мотивам картинки с листка: общий вид тот же, но детали лежат немного иначе. Давайте пациенту силуэт отсюда, а не с листка."));
+  if (fig.adapted) app.append(el("p", {class: "note"}, "Цю фігуру складено за мотивами малюнка з аркуша: загальний вигляд той самий, але деталі лежать трохи інакше. Давайте пацієнтові силует звідси, а не з аркуша."));
 
   // задание
   const task = el("section", {class: "panel"});
-  task.append(el("div", {class: "panel-title"}, "Задание"));
-  const seg = el("div", {class: "seg", role: "group", "aria-label": "Подсказка"});
-  [["sil", "Только силуэт"], ["lines", "С линиями"], ["color", "Готовая схема"]].forEach(([m, t]) => {
+  task.append(el("div", {class: "panel-title"}, "Завдання"));
+  const seg = el("div", {class: "seg", role: "group", "aria-label": "Підказка"});
+  [["sil", "Лише силует"], ["lines", "З лініями"], ["color", "Готова схема"]].forEach(([m, t]) => {
     seg.append(el("button", {class: "chip", "aria-pressed": String(state.mode === m), on: {click: () => { state.mode = m; renderFigure(idx); }}}, t));
   });
   task.append(seg);
   task.append(el("div", {class: "stage"}, figureSvg(fig, state.mode)));
-  task.append(el("p", {class: "note"}, "Соберите такую же фигуру из всех семи деталей. Детали не должны налезать друг на друга."));
+  task.append(el("p", {class: "note"}, "Складіть таку саму фігуру з усіх семи деталей. Деталі не повинні налазити одна на одну."));
 
   // шаги
   const steps = el("section", {class: "panel"});
-  steps.append(el("div", {class: "panel-title"}, "Сборка по шагам"));
+  steps.append(el("div", {class: "panel-title"}, "Покрокове складання"));
   const s = Math.min(state.step, total);
   steps.append(el("div", {class: "stage"}, figureSvg(fig, "step", s)));
   const head = el("div", {class: "step-head"},
-    el("span", {class: "step-count"}, s < total ? `Шаг ${s + 1} из ${total}` : "Готово!"),
+    el("span", {class: "step-count"}, s < total ? `Крок ${s + 1} з ${total}` : "Готово!"),
     el("div", {class: "pager"},
       el("button", {class: "btn", ...(s > 0 ? {} : {disabled: ""}), on: {click: () => { state.step = s - 1; renderFigure(idx); }}}, "Назад"),
-      el("button", {class: "btn primary", ...(s < total ? {} : {disabled: ""}), on: {click: () => { state.step = s + 1; renderFigure(idx); }}}, "Дальше")));
+      el("button", {class: "btn primary", ...(s < total ? {} : {disabled: ""}), on: {click: () => { state.step = s + 1; renderFigure(idx); }}}, "Далі")));
   steps.append(head);
   steps.append(s < total ? el("p", {class: "step-text"}, textWithSwatch(fig.steps[s]))
-                         : el("p", {class: "step-text done"}, `Фигура «${fig.name}» собрана. Сравните её с силуэтом слева.`));
+                         : el("p", {class: "step-text done"}, `Фігуру «${fig.name}» складено. Порівняйте її із силуетом зліва.`));
   const list = el("ol", {class: "steps-list"});
   fig.steps.forEach((st, i) => {
     list.append(el("li", {}, el("button", {...(i === s ? {"aria-current": "step"} : {}), on: {click: () => { state.step = i; renderFigure(idx); }}},

@@ -26,7 +26,7 @@ from build import NAMES, ADAPTED  # noqa
 
 COLORS = {"L1": "#1f5a2c", "L2": "#e8a530", "M": "#e0457b", "Q": "#2f62d9",
           "P": "#d93a3a", "S1": "#6cc08b", "S2": "#b8222b"}
-LEVEL = {1: "лёгкая", 2: "средняя", 3: "сложная"}
+LEVEL = {1: "легка", 2: "середня", 3: "складна"}
 R = math.sqrt(2)
 H = R / 2
 BOX = {  # исходный квадрат (как на фото набора), сторона 2√2
@@ -116,8 +116,8 @@ def load_figs():
 
 def scale_note(k, side_cm):
     if k >= 0.999:
-        return "Масштаб 1:1 для набора со стороной квадрата %g см" % side_cm
-    return "Уменьшено до %d%% — выкладывайте фигуру рядом с картинкой" % round(k * 100)
+        return "Масштаб 1:1 для набору зі стороною квадрата %g см" % side_cm
+    return "Зменшено до %d%% — викладайте фігуру поруч із малюнком" % round(k * 100)
 
 
 def page_task(num, key, name, sol, unit, side_cm, lines):
@@ -126,7 +126,7 @@ def page_task(num, key, name, sol, unit, side_cm, lines):
     s, k = svg(sol, unit, 180, 215, "lines" if lines else "sil")
     return """<section class="page">
 <div class="head"><h1>%s</h1><span class="num">№ %d · %s</span></div>
-<div class="task">Сложите такую фигуру из всех семи деталей. Детали не должны налезать друг на друга.</div>
+<div class="task">Складіть таку фігуру з усіх семи деталей. Деталі не повинні налазити одна на одну.</div>
 <div class="stage">%s</div>
 <div class="foot"><span>%s</span><span>Танграм</span></div>
 </section>""" % (name, num, level, s, scale_note(k, side_cm))
@@ -141,13 +141,13 @@ def page_answer(num, key, name, sol, unit, side_cm):
                     % (COLORS[st["piece"]], st["text"]) for st in steps)
     note = ""
     if key in ADAPTED:
-        note = ('<div class="note">Фигура собрана по мотивам картинки листка и отличается '
-                'от неё в деталях. Давайте пациенту силуэт из этого комплекта.</div>')
+        note = ('<div class="note">Фігуру складено за мотивами малюнка з аркуша, вона відрізняється '
+                'від нього в деталях. Давайте пацієнтові силует із цього комплекту.</div>')
     return """<section class="page">
-<div class="head"><h1>%s — ответ</h1><span class="num">№ %d</span></div>
+<div class="head"><h1>%s — відповідь</h1><span class="num">№ %d</span></div>
 <div class="stage" style="flex:1 1 0;min-height:45mm">%s</div>
 <ol>%s</ol>%s
-<div class="foot"><span>Цифры на схеме — номер шага</span><span>Танграм</span></div>
+<div class="foot"><span>Цифри на схемі — номер кроку</span><span>Танграм</span></div>
 </section>""" % (name, num, s, items, note)
 
 
@@ -158,19 +158,19 @@ def page_pieces(unit, side_cm):
                     % (COLORS[n], instructions.NAMES[n][0]) for n in
                     ["L1", "L2", "M", "Q", "P", "S1", "S2"])
     return """<section class="page">
-<div class="head"><h1>Детали набора</h1><span class="num">сторона квадрата %g см</span></div>
-<div class="task">Если своего набора нет — распечатайте этот лист на плотной бумаге и вырежьте детали по пунктиру.
-Если набор есть — приложите собранный квадрат к контуру ниже: он должен совпасть. Если не совпадает,
-распечатайте материалы заново с вашим размером (параметр --side-cm).</div>
+<div class="head"><h1>Деталі набору</h1><span class="num">сторона квадрата %g см</span></div>
+<div class="task">Якщо свого набору немає — роздрукуйте цей аркуш на щільному папері та виріжте деталі по пунктиру.
+Якщо набір є — прикладіть складений квадрат до контуру нижче: він має збігтися. Якщо не збігається,
+роздрукуйте матеріали заново з вашим розміром (параметр --side-cm).</div>
 <div class="stage">%s</div>
 <ol style="list-style:none;padding:0">%s</ol>
 </section>
 <section class="page">
-<div class="head"><h1>Контрольный квадрат</h1><span class="num">%g × %g см</span></div>
-<div class="task">Соберите квадрат из всех семи деталей прямо на этом контуре.
-Это хорошая первая задача и проверка, что печать в натуральную величину.</div>
+<div class="head"><h1>Контрольний квадрат</h1><span class="num">%g × %g см</span></div>
+<div class="task">Складіть квадрат з усіх семи деталей просто на цьому контурі.
+Це гарне перше завдання й перевірка, що друк у натуральну величину.</div>
 <div class="stage">%s</div>
-<div class="foot"><span>При печати выберите «Фактический размер» / 100%%, без «Вписать в страницу».</span><span>Танграм</span></div>
+<div class="foot"><span>Під час друку оберіть «Фактичний розмір» / 100%%, без «Вмістити на сторінку».</span><span>Танграм</span></div>
 </section>""" % (side_cm, s, names, side_cm, side_cm, s2)
 
 
